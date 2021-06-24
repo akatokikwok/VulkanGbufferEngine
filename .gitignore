@@ -1,2 +1,5 @@
 .vs/
 Debug/
+*.fsb
+*.vsb
+Res/glslc.exe
