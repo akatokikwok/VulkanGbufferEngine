@@ -1,59 +1,77 @@
-#include <windows.h>
+ï»¿#include <windows.h>
+#include "BVulkan.h"
+#include "scene.h"
 
-// Ê¶±ğÊÂ¼şÏûÏ¢ÀàĞÍµÄ»Øµ÷º¯Êı
+#pragma comment(lib, "winmm.lib")// æ—¶é—´éœ€è¦è°ƒç”¨æ­¤windowsåº“
+// è¯†åˆ«äº‹ä»¶æ¶ˆæ¯ç±»å‹çš„å›è°ƒå‡½æ•°
 LRESULT CALLBACK LearnWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message) {
-		case WM_CLOSE: // µ±Êó±êµã»÷¹Ø±Õ°´Å¥µÄÊ±ºò,ÊÂ¼ş»á±»Ê¶±ğÎªWM_CLOSEĞÍ
-			PostQuitMessage(0);// µ±ÏûÏ¢ÎªWM_CLOSEĞÍ¾ÍÍË³öÑ­»·
+		case WM_CLOSE: // å½“é¼ æ ‡ç‚¹å‡»å…³é—­æŒ‰é’®çš„æ—¶å€™,äº‹ä»¶ä¼šè¢«è¯†åˆ«ä¸ºWM_CLOSEå‹
+			PostQuitMessage(0);// å½“æ¶ˆæ¯ä¸ºWM_CLOSEå‹å°±é€€å‡ºå¾ªç¯
 			break;
 	}
-	return DefWindowProc(hwnd, message, wParam, lParam);// Ã»ÓĞÏûÏ¢ÊÂ¼ş´¦ÀíÊ±,¾ÍÊ¹ÓÃÄ¬ÈÏµÄ´¦Àí
+	return DefWindowProc(hwnd, message, wParam, lParam);// æ²¡æœ‰æ¶ˆæ¯äº‹ä»¶å¤„ç†æ—¶,å°±ä½¿ç”¨é»˜è®¤çš„å¤„ç†
 }
 
 INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
 	WNDCLASSEX wndclassex;
 	wndclassex.cbSize = sizeof(WNDCLASSEX);
-	wndclassex.cbClsExtra = 0;// ´°¿ÚµÄ¶îÍâ¿Õ¼ä
+	wndclassex.cbClsExtra = 0;// çª—å£çš„é¢å¤–ç©ºé—´
 	wndclassex.cbWndExtra = 0;
-	wndclassex.hbrBackground = nullptr;//´°¿ÚÄÚÈİÊÇäÖÈ¾³öÀ´µÄ,²»ĞèÒªwindows gdiÈ¥×ö
-	wndclassex.hCursor = LoadCursor(nullptr, IDC_ARROW);// ¼ıÍ·¹â±ê
-	wndclassex.hIcon = nullptr;// ´ÅÅÌÉÏµÄlogo
-	wndclassex.hIconSm = nullptr;// ³ÌĞòÔËĞĞÊ±×óÉÏ½ÇµÄlogo
+	wndclassex.hbrBackground = nullptr;//çª—å£å†…å®¹æ˜¯æ¸²æŸ“å‡ºæ¥çš„,ä¸éœ€è¦windows gdiå»åš
+	wndclassex.hCursor = LoadCursor(nullptr, IDC_ARROW);// ç®­å¤´å…‰æ ‡
+	wndclassex.hIcon = nullptr;// ç£ç›˜ä¸Šçš„logo
+	wndclassex.hIconSm = nullptr;// ç¨‹åºè¿è¡Œæ—¶å·¦ä¸Šè§’çš„logo
 	wndclassex.hInstance = hInstance;
-	wndclassex.lpfnWndProc = LearnWindowProc;// ¼àÌıÊÂ¼şÓÃµÄ»Øµ÷º¯Êı,±ÈÈçÊó±ê¼üÅÌÊÂ¼ş
-	wndclassex.lpszMenuName = nullptr;// Ã»ÓĞ²Ëµ¥
-	wndclassex.lpszClassName = L"BattleFireWindow"; // ¼ÓL°Ñ×Ö·û´Óchar×ª»»ÎªWCharĞÍ,×¢ÒâÊ¹ÓÃUnicode×Ö·û¼¯
-	wndclassex.style = CS_VREDRAW | CS_HREDRAW;// »æÖÆÊ±²ÉÓÃË®Æ½ÖØ»æºÍ´¹Ö±ÖØ»æ
+	wndclassex.lpfnWndProc = LearnWindowProc;// ç›‘å¬äº‹ä»¶ç”¨çš„å›è°ƒå‡½æ•°,æ¯”å¦‚é¼ æ ‡é”®ç›˜äº‹ä»¶
+	wndclassex.lpszMenuName = nullptr;// æ²¡æœ‰èœå•
+	wndclassex.lpszClassName = L"BattleFireWindow"; // åŠ LæŠŠå­—ç¬¦ä»charè½¬æ¢ä¸ºWCharå‹,æ³¨æ„ä½¿ç”¨Unicodeå­—ç¬¦é›†
+	wndclassex.style = CS_VREDRAW | CS_HREDRAW;// ç»˜åˆ¶æ—¶é‡‡ç”¨æ°´å¹³é‡ç»˜å’Œå‚ç›´é‡ç»˜
 
-	RECT rect = { 0, 0, 1280, 720 };// ÉèÖÃÒ»¸ö´°¿Ú²»°üº¬±ß¿òµÄÄÚÈİ´óĞ¡,²»°üº¬±ß¿òµÄÏÔÊ¾ÇøÓòÎª1280*720,Èô°üº¬ÁË±ß¿òÔòĞèÒªÏÂÒ»ĞĞµÄ·½·¨×Ô¶¯µ÷½Ú¼ÆËã
+	RECT rect = { 0, 0, 1280, 720 };// è®¾ç½®ä¸€ä¸ªçª—å£ä¸åŒ…å«è¾¹æ¡†çš„å†…å®¹å¤§å°,ä¸åŒ…å«è¾¹æ¡†çš„æ˜¾ç¤ºåŒºåŸŸä¸º1280*720,è‹¥åŒ…å«äº†è¾¹æ¡†åˆ™éœ€è¦ä¸‹ä¸€è¡Œçš„æ–¹æ³•è‡ªåŠ¨è°ƒèŠ‚è®¡ç®—
 	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 
-	ATOM atom = RegisterClassEx(&wndclassex);// ×¢²á´°¿Ú,·µ»ØATOMĞÍ
+	ATOM atom = RegisterClassEx(&wndclassex);// æ³¨å†Œçª—å£,è¿”å›ATOMå‹
 	if (atom == 0) {
-		MessageBox(nullptr, L"´°¿ÚÄÚÈİ:´°¿Ú×¢²áÊ§°Ü", L"´°¿Ú±êÌâ:´íÎó", MB_OK);
+		MessageBox(nullptr, L"çª—å£å†…å®¹:çª—å£æ³¨å†Œå¤±è´¥", L"çª—å£æ ‡é¢˜:é”™è¯¯", MB_OK);
 		return -1;
 	}
-	/* ´´½¨´°¿Ú*/
+	/* åˆ›å»ºçª—å£*/
 	HWND hwnd = CreateWindowEx(NULL, L"BattleFireWindow", L"LearnWindow", WS_OVERLAPPEDWINDOW, 
-		0, 0,/*´°¿Ú×óÉÏ½Ç×ø±ê*/ rect.right - rect.left, rect.bottom - rect.top,
-		nullptr,/*¸¸´°¿Ú¾ä±ú*/ nullptr,/*²Ëµ¥*/ hInstance, nullptr/*´´½¨´°¿ÚÊ±¶îÍâµÄ²ÎÊı*/
+		0, 0,/*çª—å£å·¦ä¸Šè§’åæ ‡*/ rect.right - rect.left, rect.bottom - rect.top,
+		nullptr,/*çˆ¶çª—å£å¥æŸ„*/ nullptr,/*èœå•*/ hInstance, nullptr/*åˆ›å»ºçª—å£æ—¶é¢å¤–çš„å‚æ•°*/
 	);
 	ShowWindow(hwnd, SW_SHOW);
-	UpdateWindow(hwnd);// ÏÔÊ¾´°¿ÚºóÔÙË¢ĞÂ³ÉÒªµÄÑÕÉ«
 
-	MSG msg;//Òª´æ·ÅÏûÏ¢µÄ½á¹¹Ìå
+	/* åˆå§‹åŒ–VULKANç¯å¢ƒ*/
+	InitVulkan(hwnd, 1280, 720);
+	/* è°ƒç”¨åœºæ™¯åˆå§‹åŒ–å‡½æ•°*/
+	Init();
+
+	UpdateWindow(hwnd);// æ˜¾ç¤ºçª—å£åå†åˆ·æ–°æˆè¦çš„é¢œè‰²
+
+	MSG msg;//è¦å­˜æ”¾æ¶ˆæ¯çš„ç»“æ„ä½“
+	float last_time = timeGetTime() / 1000.0f;// è¿”å›è®¡æ•°,ç§’
 	while (true) {
-		if (PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE)) {// »ñÈ¡ËùÓĞÏûÏ¢ºóÔÙ°ÑËüÃÇ´Ó¶ÓÁĞÖĞÒÆ³ıµô
-			if (msg.message == WM_QUIT) {// Èô»ñÈ¡µ½µÄÏûÏ¢ÀàĞÍÊ¶±ğÎªWM_QUIT¾ÍÖĞ¶ÏÑ­»·
+		if (PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE)) {// è·å–æ‰€æœ‰æ¶ˆæ¯åå†æŠŠå®ƒä»¬ä»é˜Ÿåˆ—ä¸­ç§»é™¤æ‰
+			if (msg.message == WM_QUIT) {// è‹¥è·å–åˆ°çš„æ¶ˆæ¯ç±»å‹è¯†åˆ«ä¸ºWM_QUITå°±ä¸­æ–­å¾ªç¯
 				break;
 			}
 
 			TranslateMessage(&msg);
-			DispatchMessage(&msg);// ÅÉ·¢ÏûÏ¢,Êµ¼ÊÉÏ¾ÍÊÇÓÃµÄ´°¿Ú½á¹¹ÌåÀïÄÇ¸ölpfnWndProc¹ØÁªµÄ·½·¨
-		}		
+			DispatchMessage(&msg);// æ´¾å‘æ¶ˆæ¯,å®é™…ä¸Šå°±æ˜¯ç”¨çš„çª—å£ç»“æ„ä½“é‡Œé‚£ä¸ªlpfnWndProcå…³è”çš„æ–¹æ³•
+		}
+		float current_time = timeGetTime() / 1000.0f;
+		float deltaTime = current_time - last_time;
+		last_time = current_time;
+		Draw(deltaTime);// æ­»å¾ªç¯é‡Œä½¿ç”¨60å¸§ç‡è¿›è¡Œç»˜åˆ¶
 	}
+	/* é€€å‡ºå‰æ¸…ç†ä¸€ä¸‹åœºæ™¯*/
+	OnQuit();
+	/* å°†vulkanæŒæœ‰çš„èµ„æºå…¨éƒ¨æ¸…é™¤,äº¤è¿˜ç»™æ˜¾å¡*/
+	VulkanCleanUp();
 	return 0;
 }
 
