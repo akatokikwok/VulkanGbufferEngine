@@ -20,14 +20,24 @@ struct XBufferObject
  */ 
 void xglBufferData(XVulkanHandle vbo, int size, void* data);
 
+/* 把数据从某端传输到某另一端*/
+void xBufferSubData(VkBuffer buffer, VkBufferUsageFlags usage/*不知道用途,可能是索引或者顶点*/, 
+	const void* data, VkDeviceSize size);
+
 /* 申请各类型buffer的显存区域*/
 VkResult xGenBuffer(VkBuffer& buffer, VkDeviceMemory& buffermemory, VkDeviceSize size,/*欲申请显存的尺寸*/ 
 	VkBufferUsageFlags usage,
 	VkMemoryPropertyFlags properties/*用以判断更靠近CPU还是GPU*/);
 
-/* 依赖上一行定义某类型buffer的申请显存宏 
- * 此宏是xGenBuffer函数的变种
+/* 此宏是xGenBuffer函数的变种
  * 定义VBO型buffer的申请显存
  */
 #define xGenVertexBuffer(size, buffer, buffermemory) \
 		xGenBuffer(buffer, buffermemory, size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT/*单次数据传输的终点*/, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT/*仅供显卡访问,CPU禁止访问*/ )
+
+/* xBufferSubData函数的变种宏 
+* 用以传输顶点数据从CPU端到GPU端
+ */
+#define xBufferSubVertexData(buffer, data, size) \
+		xBufferSubData(buffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT|VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,/* 这里设置为底层线路里的起点*/ \
+			data, size)
