@@ -1,8 +1,9 @@
 ﻿#include "scene.h"
 #include "BVulkan.h"
+#include "XVulkan.h"
 
 AVulkanHandle program;
-AVulkanHandle vbo;
+XBufferObject* vbo;
 void Init()
 {
 	// 目前使用的都是NDC空间坐标, 逆时针绘制
@@ -13,8 +14,8 @@ void Init()
 	vertexes[1].SetTexcoord(1.0f, 1.0f, 0.0f, 1.0f);
 	vertexes[2].SetPosition(0.0f, -0.5f, 0.0f);
 	vertexes[2].SetTexcoord(0.0f, 1.0f, 1.0f, 1.0f);
-	vbo = glGenBuffer();
-	glBufferData(vbo, sizeof(Vertex) * 3, vertexes);// 构建点集数据
+	vbo = new XBufferObject;
+	xglBufferData(vbo, sizeof(Vertex) * 3, vertexes);// 构建点集数据
 	program = aCreateProgram();// 创建应用
 
 	GLuint vs, fs;
