@@ -44,3 +44,12 @@ VkResult xGenBuffer(VkBuffer& buffer, VkDeviceMemory& buffermemory, VkDeviceSize
 
 /* 获取内存种类*/
 uint32_t xGetMemoryType(uint32_t type_filters, VkMemoryPropertyFlags properties);
+/* cb开始标志*/
+void xBeginOneTimeCommandBuffer(VkCommandBuffer* commandbuffer);
+/* cb结束标志*/
+void xEndOneTimeCommandBuffer(VkCommandBuffer commandbuffer);
+/* */
+void xGenCommandBuffer(VkCommandBuffer* commandbuffer, int count, VkCommandBufferLevel level= VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+
+/* 让CPU等待GPU*/
+void xWaitForCommmandFinish(VkCommandBuffer commandbuffer);

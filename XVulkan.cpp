@@ -41,11 +41,11 @@ void xBufferSubData(VkBuffer buffer, VkBufferUsageFlags usage/*不知道用途,�
 	//====CommandBuffer是沟通CPU和GPU之间的桥梁=========
 	//====CommandBuffer此处负责把数据源从临时memory拷贝到VBO里面去
 	VkCommandBuffer commandbuffer;
-	aBeginOneTimeCommandBuffer(&commandbuffer);// 注明只使用一次commandbuffer
+	xBeginOneTimeCommandBuffer(&commandbuffer);// 注明只使用一次commandbuffer
 	VkBufferCopy copy = { 0,0,size };
 	/* 数据从临时区域拷贝到VBO*/
 	vkCmdCopyBuffer(commandbuffer, tempbuffer/*来源buffer*/, buffer/*目的buffer,也就是VBO*/, 1, &copy);
-	aEndOneTimeCommandBuffer(commandbuffer);
+	xEndOneTimeCommandBuffer(commandbuffer);
 
 	vkDestroyBuffer(GetVulkanDevice(), tempbuffer, nullptr);//清除资源tempbuffer
 	vkFreeMemory(GetVulkanDevice(), tempmemory, nullptr);//释放内存
@@ -100,4 +100,45 @@ uint32_t xGetMemoryType(uint32_t type_filters, VkMemoryPropertyFlags properties)
 		}
 	}
 	return 0;// 没找到合适的索引否则就正常退出
+}
+
+void xBeginOneTimeCommandBuffer(VkCommandBuffer* commandbuffer)
+{
+	xGenCommandBuffer(commandbuffer, 1);// 生成1个普通的commandbuffer
+	VkCommandBufferBeginInfo cbbi = {};
+	cbbi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	cbbi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	vkBeginCommandBuffer(*commandbuffer, &cbbi);
+}
+
+void xEndOneTimeCommandBuffer(VkCommandBuffer commandbuffer)
+{
+	vkEndCommandBuffer(commandbuffer);
+	xWaitForCommmandFinish(commandbuffer);// 等待commandbuffer执行完成
+	vkFreeCommandBuffers(GetVulkanDevice(), GetCommandPool()/*所有的cb都是由池子产生*/, 1/*销毁几个cb*/, &commandbuffer);
+}
+
+void xGenCommandBuffer(VkCommandBuffer* commandbuffer, int count, VkCommandBufferLevel level/*= VK_COMMAND_BUFFER_LEVEL_PRIMARY*/)
+{
+	VkCommandBufferAllocateInfo cbai = {};
+	cbai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	cbai.level = level;
+	cbai.commandPool = GetCommandPool();
+	cbai.commandBufferCount = count;// 需要多少个commandbuffer
+	vkAllocateCommandBuffers(GetVulkanDevice(), &cbai, commandbuffer);
+}
+
+void xWaitForCommmandFinish(VkCommandBuffer commandbuffer)
+{
+	VkSubmitInfo submitinfo = {};
+	submitinfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitinfo.commandBufferCount = 1;
+	submitinfo.pCommandBuffers = &commandbuffer;
+	VkFenceCreateInfo fci = {};
+	fci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	VkFence fence;
+	vkCreateFence(GetVulkanDevice(), &fci, nullptr, &fence);// 创建出围栏
+	vkQueueSubmit(GetGraphicQueue(), 1, &submitinfo, fence);// 把围栏提交至队列
+	vkWaitForFences(GetVulkanDevice(), 1, &fence, VK_TRUE, 1000000000);// 等待围栏
+	vkDestroyFence(GetVulkanDevice(), fence, nullptr);// 最后销毁围栏
 }
