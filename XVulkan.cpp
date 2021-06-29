@@ -42,7 +42,7 @@ void xBufferSubData(VkBuffer buffer, VkBufferUsageFlags usage/*不知道用途,�
 	//====CommandBuffer此处负责把数据源从临时memory拷贝到VBO里面去
 	VkCommandBuffer commandbuffer;
 	aBeginOneTimeCommandBuffer(&commandbuffer);// 注明只使用一次commandbuffer
-	VkBufferCopy copy = {0,0,size};
+	VkBufferCopy copy = { 0,0,size };
 	/* 数据从临时区域拷贝到VBO*/
 	vkCmdCopyBuffer(commandbuffer, tempbuffer/*来源buffer*/, buffer/*目的buffer,也就是VBO*/, 1, &copy);
 	aEndOneTimeCommandBuffer(commandbuffer);
@@ -73,7 +73,8 @@ VkResult xGenBuffer(VkBuffer& buffer, VkDeviceMemory& buffermemory, VkDeviceSize
 	VkMemoryAllocateInfo memoryallocinfo = {};
 	memoryallocinfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	memoryallocinfo.allocationSize = requirements.size;// 分配的显存有个特性,是按照256字节对齐的,所以这里要特殊处理
-	memoryallocinfo.memoryTypeIndex = FindMemoryType(requirements.memoryTypeBits, properties);// 设置一下申请显存的类型索引,即显存用途,和入参亦有关联
+	// 至于vulkan数据的结构设计有关,与其他原理没有关系
+	memoryallocinfo.memoryTypeIndex = xGetMemoryType(requirements.memoryTypeBits, properties);// 获取并筛选一下申请显存的类型索引,即显存用途,和入参亦有关联
 	/* 利用AllocateInfo结构体和入参, 真正分配出显存*/
 	ret = vkAllocateMemory(GetVulkanDevice(), &memoryallocinfo, nullptr, &buffermemory);
 	if (ret != VK_SUCCESS) {
@@ -84,4 +85,19 @@ VkResult xGenBuffer(VkBuffer& buffer, VkDeviceMemory& buffermemory, VkDeviceSize
 	vkBindBufferMemory(GetVulkanDevice(), buffer, buffermemory, 0);
 
 	return VK_SUCCESS;
+}
+
+uint32_t xGetMemoryType(uint32_t type_filters, VkMemoryPropertyFlags properties)
+{
+	/* 首先拿到物理设备内存的一些属性, 而非逻辑设备的!!!!!*/
+	VkPhysicalDeviceMemoryProperties memory_properties;
+	vkGetPhysicalDeviceMemoryProperties(GetVulkanPhysicalDevice(), &memory_properties);
+
+	for (uint32_t i = 0; i < memory_properties.memoryTypeCount; ++i) {
+		uint32_t flag = 1 << i;
+		if ((flag & type_filters) && (memory_properties.memoryTypes[i].propertyFlags & properties) == properties) {
+			return i;//满足两组与关系的就是符合需求的,提取出这个索引
+		}
+	}
+	return 0;// 没找到合适的索引否则就正常退出
 }

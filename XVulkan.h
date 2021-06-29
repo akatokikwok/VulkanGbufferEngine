@@ -41,3 +41,6 @@ VkResult xGenBuffer(VkBuffer& buffer, VkDeviceMemory& buffermemory, VkDeviceSize
 #define xBufferSubVertexData(buffer, data, size) \
 		xBufferSubData(buffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT|VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,/* 这里设置为底层线路里的起点*/ \
 			data, size)
+
+/* 获取内存种类*/
+uint32_t xGetMemoryType(uint32_t type_filters, VkMemoryPropertyFlags properties);
